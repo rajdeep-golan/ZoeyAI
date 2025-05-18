@@ -136,7 +136,7 @@ function AgentVisualizer() {
 
 function ControlBar(props: { onConnectButtonClicked: () => void }) {
   const { state: agentState } = useVoiceAssistant();
-
+  console.log("Props", props);
   return (
     <div className="relative h-[60px]">
       <AnimatePresence>
