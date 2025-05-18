@@ -1,180 +1,209 @@
 "use client";
 
-import { CloseIcon } from "@/components/CloseIcon";
-import { NoAgentNotification } from "@/components/NoAgentNotification";
-import TranscriptionView from "@/components/TranscriptionView";
-import {
-  BarVisualizer,
-  DisconnectButton,
-  RoomAudioRenderer,
-  RoomContext,
-  VideoTrack,
-  VoiceAssistantControlBar,
-  useVoiceAssistant,
-} from "@livekit/components-react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Room, RoomEvent } from "livekit-client";
-import { useCallback, useEffect, useState } from "react";
-import type { ConnectionDetails } from "./api/connection-details/route";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter for navigation
 
-export default function Page() {
-  const [room] = useState(new Room());
+import "./styles/index.css"; // Import your CSS file
+// import router from "next/router";
 
-  const onConnectButtonClicked = useCallback(async () => {
-    // Generate room connection details, including:
-    //   - A random Room name
-    //   - A random Participant name
-    //   - An Access Token to permit the participant to join the room
-    //   - The URL of the LiveKit server to connect to
-    //
-    // In real-world application, you would likely allow the user to specify their
-    // own participant name, and possibly to choose from existing rooms to join.
-
-    const url = new URL(
-      process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? "/api/connection-details",
-      window.location.origin
-    );
-    const response = await fetch(url.toString());
-    const connectionDetailsData: ConnectionDetails = await response.json();
-
-    await room.connect(connectionDetailsData.serverUrl, connectionDetailsData.participantToken);
-    await room.localParticipant.setMicrophoneEnabled(true);
-  }, [room]);
-
+export default function Index() {
   useEffect(() => {
-    room.on(RoomEvent.MediaDevicesError, onDeviceFailure);
+    const particles = document.getElementById("particles");
+    const particleCount = 50;
+    
+    if (particles) {
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement("div");
+        particle.classList.add("particle");
+
+        const size = Math.random() * 3 + 1;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.left = `${Math.random() * 100}%`;
+        particle.style.opacity = `${Math.random() * 0.5}`;
+        const duration = Math.random() * 20 + 10;
+        particle.style.animationDuration = `${duration}s`;
+        particle.style.animationDelay = `${Math.random() * 5}s`;
+
+        particles.appendChild(particle);
+      }
+    }
+
+    const faqItems = document.querySelectorAll(".faq-item");
+    faqItems.forEach((item) => {
+      const question = item.querySelector(".faq-question");
+      if (question) {
+        question.addEventListener("click", () => {
+          item.classList.toggle("active");
+          faqItems.forEach((otherItem) => {
+            if (otherItem !== item && otherItem.classList.contains("active")) {
+              otherItem.classList.remove("active");
+            }
+          });
+        });
+      }
+    });
 
     return () => {
-      room.off(RoomEvent.MediaDevicesError, onDeviceFailure);
+      if (particles) {
+        particles.innerHTML = "";
+      }
+      faqItems.forEach((item) => {
+        const question = item.querySelector(".faq-question");
+        if (question) {
+          question.removeEventListener("click", () => {});
+        }
+      });
     };
-  }, [room]);
+  }, []);
 
+  const router = useRouter();
+  const handleCallZoey = () => {
+    router.push("/assistant"); // Navigate to the assistant page
+  };
+  
   return (
-    <main data-lk-theme="default" className="h-full grid content-center bg-[var(--lk-bg)]">
-      <RoomContext.Provider value={room}>
-        <div className="lk-room-container max-w-[1024px] w-[90vw] mx-auto max-h-[90vh]">
-          <SimpleVoiceAssistant onConnectButtonClicked={onConnectButtonClicked} />
-        </div>
-      </RoomContext.Provider>
-    </main>
-  );
-}
+    <div>
+      <div className="noise"></div>
+      <div className="orb orb-1"></div>
+      <div className="orb orb-2"></div>
+      <div className="orb orb-3"></div>
 
-function SimpleVoiceAssistant(props: { onConnectButtonClicked: () => void }) {
-  const { state: agentState } = useVoiceAssistant();
+      <div className="container">
+        <header>
+          <a href="#" className="logo">
+            <span className="logo-icon"></span>
+            <span>ZOEY</span>
+          </a>
+          <nav className="nav">
+            <a href="#" className="nav-link">About</a>
+            <a href="#" className="nav-link">Features</a>
+            <a href="#" className="nav-link">Technology</a>
+            <a href="#" className="nav-link">Pricing</a>
+          </nav>
+        </header>
 
-  return (
-    <>
-      <AnimatePresence mode="wait">
-        {agentState === "disconnected" ? (
-          <motion.div
-            key="disconnected"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3, ease: [0.09, 1.04, 0.245, 1.055] }}
-            className="grid items-center justify-center h-full"
-          >
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-              className="uppercase px-4 py-2 bg-white text-black rounded-md"
-              onClick={() => props.onConnectButtonClicked()}
-            >
-              Start a conversation
-            </motion.button>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="connected"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3, ease: [0.09, 1.04, 0.245, 1.055] }}
-            className="flex flex-col items-center gap-4 h-full"
-          >
-            <AgentVisualizer />
-            <div className="flex-1 w-full">
-              <TranscriptionView />
+        <section className="hero">
+          <div className="hero-content">
+            <h1 className="hero-title">Let AI Help You Meet Your Perfect Match</h1>
+            <p className="hero-subtitle">
+              ZOEY AI uses advanced artificial intelligence to understand your
+              deepest emotional patterns and desires, connecting you with your
+              ZOEY MATCH who truly resonates with your essence.
+            </p>
+            <div className="action-buttons">
+              <a href="#download" className="btn">
+                Download App
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 17V3M12 17l-5-5M12 17l5-5" />
+                </svg>
+              </a>
+              <a onClick={handleCallZoey}  className="btn btn-secondary">Call ZOEY</a>
             </div>
-            <div className="w-full">
-              <ControlBar onConnectButtonClicked={props.onConnectButtonClicked} />
+          </div>
+
+          <div className="hero-visual">
+            <div className="hero-sphere"></div>
+            <div className="hero-title" style={{ marginLeft: "200px" }}>
+              <div style={{ textAlign: "center", fontSize: "smaller" }}>Finally, No More</div>
+              <div style={{ textAlign: "center", fontSize: "smaller" }}>Swiping!</div>
             </div>
-            <RoomAudioRenderer />
-            <NoAgentNotification state={agentState} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
-}
+          </div>
 
-function AgentVisualizer() {
-  const { state: agentState, videoTrack, audioTrack } = useVoiceAssistant();
+          <div className="particles" id="particles"></div>
+        </section>
 
-  if (videoTrack) {
-    return (
-      <div className="h-[512px] w-[512px] rounded-lg overflow-hidden">
-        <VideoTrack trackRef={videoTrack} />
+        <section className="features" id="learn-more">
+          <h2 className="section-title">Meet the ZOEY of your life!</h2>
+          <p className="section-subtitle">
+            Skip the process and filling long forms page after page. Talk to ZOEY
+            - and it will connect you with your most compatible mate. Our
+            proprietary algorithms decode emotional compatibility at a level never
+            seen before in relationship technology.
+          </p>
+
+          <div className="features-grid">
+            <div className="feature-card">
+              <div className="feature-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="30"
+                  height="30"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25" />
+                  <line x1="8" y1="16" x2="8.01" y2="16" />
+                  <line x1="8" y1="20" x2="8.01" y2="20" />
+                  <line x1="12" y1="18" x2="12.01" y2="18" />
+                  <line x1="12" y1="22" x2="12.01" y2="22" />
+                  <line x1="16" y1="16" x2="16.01" y2="16" />
+                  <line x1="16" y1="20" x2="16.01" y2="20" />
+                </svg>
+              </div>
+              <h3 className="feature-title">One Connection at a time</h3>
+              <p className="feature-description">
+                Promoting Loyalty and Authenticity, ZOEY AI focuses on one
+                connection at a time, ensuring a deeper, more meaningful
+                interaction.
+              </p>
+            </div>
+
+            <div className="feature-card">
+              <div className="feature-icon">
+                💬
+              </div>
+              <h3 className="feature-title">Talk, Don’t Type</h3>
+              <p className="feature-description">
+                Start with a conversation, not a bio. ZOEY learns your values,
+                humor, and heart to find someone who truly fits.
+              </p>
+            </div>
+
+            <div className="feature-card">
+              <div className="feature-icon">
+                🧠
+              </div>
+              <h3 className="feature-title">Emotional AI Matchmaking</h3>
+              <p className="feature-description">
+                ZOEY isn’t just smart — she’s emotionally intelligent. Our system
+                understands feelings to create more human, heart-led matches.
+              </p>
+            </div>
+
+            <div className="feature-card">
+              <div className="feature-icon">
+                🔒
+              </div>
+              <h3 className="feature-title">Private and Secure</h3>
+              <p className="feature-description">
+                All your conversations are encrypted, and ZOEY only keeps what’s
+                needed to improve your matchmaking experience.
+              </p>
+            </div>
+          </div>
+        </section>
       </div>
-    );
-  }
-  return (
-    <div className="h-[300px] w-full">
-      <BarVisualizer
-        state={agentState}
-        barCount={5}
-        trackRef={audioTrack}
-        className="agent-visualizer"
-        options={{ minHeight: 24 }}
-      />
+
+      <footer className="footer">
+        <div className="footer-content">
+          <div className="copyright">&copy; 2025 GEC All rights reserved.</div>
+        </div>
+      </footer>
     </div>
-  );
-}
-
-function ControlBar(props: { onConnectButtonClicked: () => void }) {
-  const { state: agentState } = useVoiceAssistant();
-
-  return (
-    <div className="relative h-[60px]">
-      <AnimatePresence>
-        {agentState === "disconnected" && (
-          <motion.button
-            initial={{ opacity: 0, top: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, top: "-10px" }}
-            transition={{ duration: 1, ease: [0.09, 1.04, 0.245, 1.055] }}
-            className="uppercase absolute left-1/2 -translate-x-1/2 px-4 py-2 bg-white text-black rounded-md"
-            onClick={() => props.onConnectButtonClicked()}
-          >
-            Start a conversation
-          </motion.button>
-        )}
-      </AnimatePresence>
-      <AnimatePresence>
-        {agentState !== "disconnected" && agentState !== "connecting" && (
-          <motion.div
-            initial={{ opacity: 0, top: "10px" }}
-            animate={{ opacity: 1, top: 0 }}
-            exit={{ opacity: 0, top: "-10px" }}
-            transition={{ duration: 0.4, ease: [0.09, 1.04, 0.245, 1.055] }}
-            className="flex h-8 absolute left-1/2 -translate-x-1/2  justify-center"
-          >
-            <VoiceAssistantControlBar controls={{ leave: false }} />
-            <DisconnectButton>
-              <CloseIcon />
-            </DisconnectButton>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-function onDeviceFailure(error: Error) {
-  console.error(error);
-  alert(
-    "Error acquiring camera or microphone permissions. Please make sure you grant the necessary permissions in your browser and reload the tab"
   );
 }
