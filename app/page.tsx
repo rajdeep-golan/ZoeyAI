@@ -89,7 +89,7 @@ export default function Index() {
             <p className="hero-subtitle">
               ZOEY AI uses advanced artificial intelligence to understand your
               deepest emotional patterns and desires, connecting you with your
-              ZOEY MATCH who truly resonates with your essence.
+              Soul match who truly resonates with your essence.
             </p>
             <div className="action-buttons">
               <a href="#download" className="btn">
@@ -124,7 +124,7 @@ export default function Index() {
         </section>
 
         <section className="features" id="learn-more">
-          <h2 className="section-title">Meet the ZOEY of your life!</h2>
+          <h2 className="section-title">Meet the SOUL of your life!</h2>
           <p className="section-subtitle">
             Skip the process and filling long forms page after page. Talk to ZOEY
             - and it will connect you with your most compatible mate. Our
