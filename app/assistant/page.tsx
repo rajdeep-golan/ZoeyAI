@@ -14,14 +14,19 @@ import {
 } from "@livekit/components-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Room, RoomEvent } from "livekit-client";
-import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ConnectionDetails } from "../api/connection-details/route";
 
 export default function Page() {
   const [room] = useState(new Room());
   const [isCalling, setIsCalling] = useState(true); // State to track "Calling..."
+  const router = useRouter();
+  const startedRef = useRef(false);
 
   const onConnectButtonClicked = useCallback(async () => {
+    if (startedRef.current) return; // only dial once per visit
+    startedRef.current = true;
     try {
       setIsCalling(true); // Set "Calling..." state to true
       const url = new URL(
@@ -38,16 +43,22 @@ export default function Page() {
     } catch (error) {
       setIsCalling(false); // Stop "Calling..." on error
       onDeviceFailure(error);
+      router.push("/");
     }
-  }, [room]);
+  }, [room, router]);
 
   useEffect(() => {
+    // When the call ends (close button or agent leaves), go back to the home screen
+    const onDisconnected = () => router.push("/");
     room.on(RoomEvent.MediaDevicesError, onDeviceFailure);
+    room.on(RoomEvent.Disconnected, onDisconnected);
 
     return () => {
       room.off(RoomEvent.MediaDevicesError, onDeviceFailure);
+      room.off(RoomEvent.Disconnected, onDisconnected);
+      room.disconnect();
     };
-  }, [room]);
+  }, [room, router]);
 
   return (
     <main data-lk-theme="default" className="h-full grid content-center bg-[var(--lk-bg)]">

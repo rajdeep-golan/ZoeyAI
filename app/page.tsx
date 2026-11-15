@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation"; // Import useRouter for navigation
 
+import SeattleInvite from "@/components/SeattleInvite";
 import "./styles/index.css"; // Import your CSS file
 // import router from "next/router";
 
@@ -82,6 +83,11 @@ export default function Index() {
             <a href="#" className="nav-link">Pricing</a>
           </nav>
         </header>
+
+        <div className="invite-banner">
+          <SeattleInvite />
+          <div className="invite-banner-sub">🚀 Launching in Seattle soon · Limited early-access spots</div>
+        </div>
 
         <section className="hero">
           <div className="hero-content">
