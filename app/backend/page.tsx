@@ -1,6 +1,6 @@
 import { rankMatches, type Profile } from "@/lib/matching";
 import { loadProfiles } from "@/lib/profilesDb";
-import AutoRefresh from "./AutoRefresh";
+import RefreshButton from "./RefreshButton";
 import MemberList from "./MemberList";
 import "./backend.css";
 
@@ -43,7 +43,7 @@ export default async function BackendPage({ searchParams }: Props) {
         </div>
         <div className="be-live">
           {following ? (
-            <><AutoRefresh seconds={5} /><span className="pulse" /> Live · showing latest call</>
+            <><span className="pulse" /> Showing latest call <RefreshButton /></>
           ) : (
             <a href={`/backend?key=${encodeURIComponent(key)}`}>● Follow latest call</a>
           )}
