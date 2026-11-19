@@ -1,5 +1,6 @@
 import { rankMatches, type Profile } from "@/lib/matching";
 import { loadProfiles } from "@/lib/profilesDb";
+import { countWaitlist, loadWaitlist } from "@/lib/waitlistDb";
 import RefreshButton from "./RefreshButton";
 import MemberList from "./MemberList";
 import "./backend.css";
@@ -7,7 +8,7 @@ import "./backend.css";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Zoey Backend · Profiles DB", robots: { index: false } };
 
-type Props = { searchParams: { key?: string; profile?: string } };
+type Props = { searchParams: { key?: string; profile?: string; tab?: string } };
 
 const fmtHeight = (cm?: number | null) => {
   if (!cm) return "—";
@@ -19,6 +20,61 @@ export default async function BackendPage({ searchParams }: Props) {
   const key = searchParams.key ?? "";
   if (!process.env.DASHBOARD_KEY || key !== process.env.DASHBOARD_KEY) {
     return <main className="be"><div className="be-locked">🔒 Not authorized</div></main>;
+  }
+
+  const k = encodeURIComponent(key);
+  const tab = searchParams.tab === "waitlist" ? "waitlist" : "profiles";
+  const waitCount = await countWaitlist();
+  const tabs = (profileCount?: number) => (
+    <nav className="be-tabs">
+      <a href={`/backend?key=${k}`} className={tab === "profiles" ? "on" : ""}>Profiles{profileCount != null ? ` (${profileCount})` : ""}</a>
+      <a href={`/backend?key=${k}&tab=waitlist`} className={tab === "waitlist" ? "on" : ""}>Seattle waitlist ({waitCount})</a>
+    </nav>
+  );
+
+  if (tab === "waitlist") {
+    const entries = await loadWaitlist();
+    const pt = (iso: string) => new Date(iso).toLocaleString("en-US", { timeZone: "America/Los_Angeles", month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }) + " PT";
+    return (
+      <main className="be">
+        <header className="be-head">
+          <div>
+            <div className="be-logo">ZOEY <span>backend</span></div>
+            <div className="be-sub">Database · collection <code>waitlist</code></div>
+          </div>
+          <div className="be-live"><RefreshButton /></div>
+          <div className="be-stats">
+            <div><b>{entries.length}</b><span>signups</span></div>
+            <div><b>{entries.filter((e) => e.type === "email").length}</b><span>emails</span></div>
+            <div><b>{entries.filter((e) => e.type === "phone").length}</b><span>phones</span></div>
+          </div>
+        </header>
+        {tabs()}
+        <section className="be-card">
+          <h3>Seattle exclusive-invite waitlist</h3>
+          {entries.length === 0 ? (
+            <p className="be-muted">No signups yet.</p>
+          ) : (
+            <div className="be-table-wrap">
+              <table className="be-table">
+                <thead><tr><th>#</th><th>Email / phone</th><th>Type</th><th>City</th><th>Signed up</th></tr></thead>
+                <tbody>
+                  {entries.map((e, i) => (
+                    <tr key={e.id}>
+                      <td className="num">{entries.length - i}</td>
+                      <td>{e.type === "email" ? <a href={`mailto:${e.contact}`}>{e.contact}</a> : <a href={`tel:${e.contact.replace(/[^\d+]/g, "")}`}>{e.contact}</a>}</td>
+                      <td>{e.type === "email" ? "✉️ email" : "📱 phone"}</td>
+                      <td>{e.city}</td>
+                      <td className="be-muted">{e.createdAt ? pt(e.createdAt) : "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      </main>
+    );
   }
 
   const all = await loadProfiles();
@@ -54,6 +110,7 @@ export default async function BackendPage({ searchParams }: Props) {
           <div><b>{newToday}</b><span>new today</span></div>
         </div>
       </header>
+      {tabs(all.length)}
 
       <div className="be-grid">
         <aside className="be-list">
